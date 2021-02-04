@@ -12,6 +12,8 @@ CreditDecisionControllerTest- This Mock test class will cover all the below ment
 Steps to execute: Download the project and Import as Maven project, Download corresponding dependency and Execute the project as Spring boot App and Use the below url in POSTMAN to perform the testing.
 
 Local Host URL: http://localhost:8080/creditdecision/calculateLoanAmount/
+
+
 Pay Load Structure :
 
 Eligible Pay Load:
