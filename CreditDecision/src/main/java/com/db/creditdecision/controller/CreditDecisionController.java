@@ -82,7 +82,7 @@ public class CreditDecisionController {
 				}
 
 			} else {
-				responseEntity = new ResponseEntity<String>(ApplicationConstant.LOAN_SANCTIONED, HttpStatus.NOT_FOUND);
+				responseEntity = new ResponseEntity<String>(ApplicationConstant.LOAN_SANCTIONED, HttpStatus.OK);
 			}
 
 		} else {
