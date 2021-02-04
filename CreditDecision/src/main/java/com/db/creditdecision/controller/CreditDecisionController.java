@@ -85,6 +85,8 @@ public class CreditDecisionController {
 				responseEntity = new ResponseEntity<String>(ApplicationConstant.LOAN_SANCTIONED, HttpStatus.NOT_FOUND);
 			}
 
+		} else {
+			responseEntity = new ResponseEntity<String>(ApplicationConstant.INVALID_DATA, HttpStatus.BAD_REQUEST);
 		}
 		return responseEntity;
 
