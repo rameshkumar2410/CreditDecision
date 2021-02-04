@@ -42,9 +42,6 @@ Invalid SSN Number Payload:
 
 Loan Already Sanctioned Payload:
 
-
-Invalid SSN Number Payload:
-
 {
 "ssnNumber": "11235",
 "loanAmount": "600000", 
