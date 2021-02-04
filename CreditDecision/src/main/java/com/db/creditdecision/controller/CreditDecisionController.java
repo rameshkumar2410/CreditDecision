@@ -77,7 +77,7 @@ public class CreditDecisionController {
 					}
 				} else {
 					responseEntity = new ResponseEntity<String>(ApplicationConstant.SSN_NOT_FOUND,
-							HttpStatus.NOT_FOUND);
+							HttpStatus.OK);
 
 				}
 
