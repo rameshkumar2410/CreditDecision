@@ -1,4 +1,4 @@
-# CreditDecision
+# Credit Decision Engine
 This Project is to calculate the Loan amount eligibility from the Credit engine
 
 Created CreditDecisionController - this controller helps to calculate the Loan amount eligibility for the applied SSN Number, Pay load should be passed in the response body as Json format.
