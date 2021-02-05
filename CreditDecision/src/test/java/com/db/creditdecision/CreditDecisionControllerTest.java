@@ -1,6 +1,7 @@
 package com.db.creditdecision;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ class CreditDecisionControllerTest {
 			String uri = getCreditScoreURL + applicantDetails.getSsnNumber();
 			when(restTemplate.getForObject(uri, CreditScore.class)).thenReturn(creditscore);
 			ResponseEntity<?> result = creditDecisionController.calculateLoanAmount(applicantDetails);
-			assertThat(result.getStatusCode().equals(HttpStatus.OK));
+			assertEquals(result.getStatusCode(),HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -82,7 +83,7 @@ class CreditDecisionControllerTest {
 			String uri = getCreditScoreURL + applicantDetails.getSsnNumber();
 			when(restTemplate.getForObject(uri, CreditScore.class)).thenReturn(creditscore);
 			ResponseEntity<?> result = creditDecisionController.calculateLoanAmount(applicantDetails);
-			assertThat(result.getStatusCode().equals(HttpStatus.OK));
+			assertEquals(result.getStatusCode(),HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -107,7 +108,7 @@ class CreditDecisionControllerTest {
 			String uri = getCreditScoreURL + applicantDetails.getSsnNumber();
 			when(restTemplate.getForObject(uri, CreditScore.class)).thenReturn(null);
 			ResponseEntity<?> result = creditDecisionController.calculateLoanAmount(applicantDetails);
-			assertThat(result.getStatusCode().equals(HttpStatus.OK));
+			assertEquals(result.getStatusCode(),HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -128,7 +129,7 @@ class CreditDecisionControllerTest {
 			when(creditDecisionValidator.validateApplicantDetails(applicantDetails)).thenCallRealMethod();
 			when(creditDecisionValidator.validateLoanSanctionHistory(applicantDetails)).thenReturn(true);
 			ResponseEntity<?> result = creditDecisionController.calculateLoanAmount(applicantDetails);
-			assertThat(result.getStatusCode().equals(HttpStatus.OK));
+			assertEquals(result.getStatusCode(),HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
