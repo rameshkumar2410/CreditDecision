@@ -29,7 +29,7 @@ public class CreditScoreController {
 	 * @return CreditScore
 	 */
 	@GetMapping(path = "/getCreditScore/{ssnNumber}", produces = MediaType.APPLICATION_JSON)
-	public CreditScore getCreditScore(@PathVariable int ssnNumber) {
+	public CreditScore getCreditScore(@PathVariable final int ssnNumber) {
 
 		CreditScore creditScore = creditScoreData.getCreditScoreData().stream()
 				.filter(credit -> credit.getSsnNumber() == ssnNumber).findAny().orElse(null);
