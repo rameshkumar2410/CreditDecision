@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.ws.rs.core.MediaType;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,8 @@ import com.db.creditdecision.validator.CreditDecisionValidator;
 @RequestMapping("/creditdecision")
 public class CreditDecisionController {
 
+	private static final Logger LOGGER = Logger.getLogger(CreditDecisionController.class);
+
 	@Autowired
 	private RestTemplate restTemplate;
 
@@ -50,43 +53,50 @@ public class CreditDecisionController {
 		CreditScore creditscore = null;
 		int sanctionedLoanAmount = 0;
 		ResponseEntity<?> responseEntity = null;
-		if (creditDecisionValidator.validateApplicantDetails(applicantDetails)) {
+		try {
+			if (creditDecisionValidator.validateApplicantDetails(applicantDetails)) {
+				if (!creditDecisionValidator.validateLoanSanctionHistory(applicantDetails)) {
+					String uri = getCreditScoreURL + applicantDetails.getSsnNumber();
+					creditscore = restTemplate.getForObject(uri, CreditScore.class);
+					if (creditscore != null) {
+						LoanSanctionDetails loanSanctionDetails = new LoanSanctionDetails();
+						loanSanctionDetails.setSsnNumber(creditscore.getSsnNumber());
+						if (creditscore.getCreditScore() > 700) {
+							sanctionedLoanAmount = applicantDetails.getCurrentAnnualIncome() / 2;
 
-			if (!creditDecisionValidator.validateLoanSanctionHistory(applicantDetails)) {
-				String uri = getCreditScoreURL + applicantDetails.getSsnNumber();
-				creditscore = restTemplate.getForObject(uri, CreditScore.class);
-				if (creditscore != null) {
-					LoanSanctionDetails loanSanctionDetails = new LoanSanctionDetails();
-					loanSanctionDetails.setSsnNumber(creditscore.getSsnNumber());
-					if (creditscore.getCreditScore() > 700) {
-						sanctionedLoanAmount = applicantDetails.getCurrentAnnualIncome() / 2;
-
-						loanSanctionDetails.setEligibility(ApplicationConstant.ELIGIBLE);
-						if (applicantDetails.getLoanAmount() <= sanctionedLoanAmount) {
-							loanSanctionDetails.setSanctionedAmount(applicantDetails.getLoanAmount());
+							loanSanctionDetails.setEligibility(ApplicationConstant.ELIGIBLE);
+							if (applicantDetails.getLoanAmount() <= sanctionedLoanAmount) {
+								loanSanctionDetails.setSanctionedAmount(applicantDetails.getLoanAmount());
+							} else {
+								loanSanctionDetails.setSanctionedAmount(sanctionedLoanAmount);
+							}
+							loanSanctionDetails.setSanctionedDate(new Date());
+							responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails,
+									HttpStatus.OK);
 						} else {
+
+							loanSanctionDetails.setEligibility(ApplicationConstant.NOT_ELIGIBLE);
 							loanSanctionDetails.setSanctionedAmount(sanctionedLoanAmount);
+							responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails,
+									HttpStatus.OK);
 						}
-						loanSanctionDetails.setSanctionedDate(new Date());
-						responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails, HttpStatus.OK);
 					} else {
+						responseEntity = new ResponseEntity<String>(ApplicationConstant.SSN_NOT_FOUND, HttpStatus.OK);
 
-						loanSanctionDetails.setEligibility(ApplicationConstant.NOT_ELIGIBLE);
-						loanSanctionDetails.setSanctionedAmount(sanctionedLoanAmount);
-						responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails, HttpStatus.OK);
 					}
-				} else {
-					responseEntity = new ResponseEntity<String>(ApplicationConstant.SSN_NOT_FOUND,
-							HttpStatus.OK);
 
+				} else {
+					responseEntity = new ResponseEntity<String>(ApplicationConstant.LOAN_SANCTIONED, HttpStatus.OK);
 				}
 
 			} else {
-				responseEntity = new ResponseEntity<String>(ApplicationConstant.LOAN_SANCTIONED, HttpStatus.OK);
+				responseEntity = new ResponseEntity<String>(ApplicationConstant.INVALID_DATA, HttpStatus.BAD_REQUEST);
 			}
 
-		} else {
-			responseEntity = new ResponseEntity<String>(ApplicationConstant.INVALID_DATA, HttpStatus.BAD_REQUEST);
+		} catch (Exception e) {
+			LOGGER.error("Exception Occured inside calculateLoanAmount : " + e.getMessage());
+			responseEntity = new ResponseEntity<String>(ApplicationConstant.EXCEPTION, HttpStatus.NOT_FOUND);
+
 		}
 		return responseEntity;
 
