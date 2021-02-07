@@ -16,6 +16,9 @@ public class ApplicationConstant {
 	 public static final String NOT_ELIGIBLE = "Not Eligible"; 
 	 
 	 public static final String INVALID_DATA = "Please enter valid SSN Number or Loan Amount or Current Annual Income";
+	
+	 public static final String EXCEPTION = "Exception occurred during Credit Engine Execution";
+
 
 
 }
