@@ -90,6 +90,7 @@ public class CreditDecisionController {
 					}
 
 				} else {
+					loanSanctionDetails.setSsnNumber(applicantDetails.getSsnNumber());
 					loanSanctionDetails.setEligibility(ApplicationConstant.LOAN_SANCTIONED);
 					responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails, HttpStatus.OK);
 				}
