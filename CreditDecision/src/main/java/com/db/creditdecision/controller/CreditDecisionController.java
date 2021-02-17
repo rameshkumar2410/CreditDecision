@@ -19,6 +19,7 @@ import com.db.creditdecision.bo.ApplicantDetails;
 import com.db.creditdecision.bo.CreditScore;
 import com.db.creditdecision.bo.LoanSanctionDetails;
 import com.db.creditdecision.constants.ApplicationConstant;
+import com.db.creditdecision.service.CreditScoreService;
 import com.db.creditdecision.validator.CreditDecisionValidator;
 
 /**
@@ -38,6 +39,9 @@ public class CreditDecisionController {
 
 	@Autowired
 	CreditDecisionValidator creditDecisionValidator;
+	
+	@Autowired
+	CreditScoreService creditScoreService;
 
 	@Value("${app.db.api.getCreditScoreURL}")
 	private String getCreditScoreURL;
@@ -49,17 +53,16 @@ public class CreditDecisionController {
 	 * @return ResponseEntity of LoanSanctioned Details
 	 */
 	@PostMapping(path = "/calculateLoanAmount/", produces = MediaType.APPLICATION_JSON)
-	public ResponseEntity<?> calculateLoanAmount(@RequestBody final ApplicantDetails applicantDetails) {
+	public ResponseEntity<LoanSanctionDetails> calculateLoanAmount(@RequestBody final ApplicantDetails applicantDetails) {
 		CreditScore creditscore = null;
 		int sanctionedLoanAmount = 0;
-		ResponseEntity<?> responseEntity = null;
+		ResponseEntity<LoanSanctionDetails> responseEntity = null;
+		LoanSanctionDetails loanSanctionDetails = new LoanSanctionDetails();
 		try {
 			if (creditDecisionValidator.validateApplicantDetails(applicantDetails)) {
 				if (!creditDecisionValidator.validateLoanSanctionHistory(applicantDetails)) {
-					String uri = getCreditScoreURL + applicantDetails.getSsnNumber();
-					creditscore = restTemplate.getForObject(uri, CreditScore.class);
+					creditscore = creditScoreService.getCreditScore(applicantDetails);
 					if (creditscore != null) {
-						LoanSanctionDetails loanSanctionDetails = new LoanSanctionDetails();
 						loanSanctionDetails.setSsnNumber(creditscore.getSsnNumber());
 						if (creditscore.getCreditScore() > 700) {
 							sanctionedLoanAmount = applicantDetails.getCurrentAnnualIncome() / 2;
@@ -81,21 +84,25 @@ public class CreditDecisionController {
 									HttpStatus.OK);
 						}
 					} else {
-						responseEntity = new ResponseEntity<String>(ApplicationConstant.SSN_NOT_FOUND, HttpStatus.OK);
+						loanSanctionDetails.setEligibility(ApplicationConstant.SSN_NOT_FOUND);
+						responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails, HttpStatus.NOT_FOUND);
 
 					}
 
 				} else {
-					responseEntity = new ResponseEntity<String>(ApplicationConstant.LOAN_SANCTIONED, HttpStatus.OK);
+					loanSanctionDetails.setEligibility(ApplicationConstant.LOAN_SANCTIONED);
+					responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails, HttpStatus.OK);
 				}
 
 			} else {
-				responseEntity = new ResponseEntity<String>(ApplicationConstant.INVALID_DATA, HttpStatus.BAD_REQUEST);
+				loanSanctionDetails.setEligibility(ApplicationConstant.INVALID_DATA);
+				responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails, HttpStatus.BAD_REQUEST);
 			}
 
 		} catch (Exception e) {
 			LOGGER.error("Exception Occured inside calculateLoanAmount : " + e.getMessage());
-			responseEntity = new ResponseEntity<String>(ApplicationConstant.EXCEPTION, HttpStatus.NOT_FOUND);
+			loanSanctionDetails.setEligibility(ApplicationConstant.EXCEPTION);
+			responseEntity = new ResponseEntity<LoanSanctionDetails>(loanSanctionDetails, HttpStatus.INTERNAL_SERVER_ERROR);
 
 		}
 		return responseEntity;
